@@ -1,32 +1,44 @@
-# Predicting Aircraft Aerodynamics Using Machine Learning
+# Airfoil Lift & Drag Prediction System (with Streamlit Deployment)
 
 ## Introduction
-Computational Fluid Dynamics (CFD) is traditionally used to evaluate the aerodynamic performance of aircraft designs. While highly accurate, CFD simulations require massive computational power and hours—sometimes days—to run. This Final Year Project bridges the gap by developing a Machine Learning framework to predict critical aerodynamic properties (such as Lift and Drag coefficients) instantaneously based on geometric and environmental input variables. 
+Evaluating aerodynamic performance traditionally relies on computationally intensive Computational Fluid Dynamics (CFD) simulations or high-cost physical wind tunnel testing. While highly precise, these traditional approaches require extensive execution time per design iteration, slowing down the conceptual optimization phase.
 
-This solution provides aerospace designers with a rapid, real-time optimization tool during the conceptual design phase.
+This repository presents an end-to-end Machine Learning engineering framework developed to predict critical aircraft aerodynamic properties—specifically the **Coefficient of Lift ($C_L$)** and **Coefficient of Drag ($C_D$)**—instantaneously. By utilizing parameterized geometric profile features (CST coefficients) alongside environmental flow variables, this framework bypasses slow simulation cycles. 
+
+To make the models actionable, the system is deployed via an interactive **Streamlit web application** that handles feature lookup, drives the pre-trained ensemble pipelines, and conducts real-time physical validation checks on predictions.
+
+## Repository Structure
+The project is decoupled into production-ready modular steps following the standard machine learning lifecycle:
+* `data_cleaning.ipynb`: Pipeline initialization, mixed-type handling, and robust statistical outlier filtering.
+* `RandomForest.ipynb`: Core implementation, cross-validation, and parallel core allocation for the Random Forest baseline.
+* `Gradient Boosting.ipynb`: Comparative training structures mapping Base vs. Hyperparameter-Tuned Gradient Boosting Regressors.
+* `LightGBM.ipynb`: High-efficiency Light Gradient Boosting Machine scripts capturing final performance enhancements.
+* `Final_Test_app.py`: The production deployment file launching the interactive user interface.
+
+## Web Application Features (`Final_Test_app.py`)
+The user-facing Streamlit dashboard features engineering guardrails to bridge the gap between static models and real-world utility:
+* **Dynamic Geometry Mapping:** Links directly with an internal lookup database (`airfoil_geometry_lookup.csv`) to automatically load complex structural CST geometric coefficients based on a user's selected airfoil profile name.
+* **Operational Constraint Boundaries:** Enforces strict physical operational checks tailored to the training spectrum (e.g., Reynolds numbers between $5 \times 10^4$ and $5 \times 10^6$, and Angles of Attack between $-10^\circ$ and $15^\circ$).
+* **Real-Time Physics Validation Engine:** Programmatically monitors prediction anomalies. If the model outputs extreme states—such as an absolute lift configuration $|C_L| > 2.5$ or highly skewed Lift-to-Drag ($L/D$) efficiency scales—the application flags the occurrence with contextual warnings to alert users to potential aerodynamic stall boundaries.
 
 ## Methodology
-The machine learning architecture follows a robust data science workflow tailored for engineering optimization:
 
-### 1. Data Preprocessing & Feature Engineering
-* **Data Normalization:** Applied scaling techniques to handle engineering parameters with wide numerical distributions (e.g., Reynolds numbers, Mach numbers, and Angle of Attack).
-* **Dimensionality Reduction:** Conducted multi-collinearity checks and feature importance analyses to retain only the most impactful aerodynamic indicators.
+### 1. Data Engineering & Cleaning (`data_cleaning.ipynb`)
+* **Scale Management:** Managed a large-scale simulation dataset encompassing over 860,000 distinct flight-state patterns.
+* **Interquartile Range (IQR) Filtering:** Implemented a strict outlier elimination step applying a $1.5 \times \text{IQR}$ cutoff boundary explicitly on target variables ($C_L$ and $C_D$). This process effectively isolated and discarded unstable boundary-condition simulation entries (accounting for approx. 3.33% of raw data), ensuring clean gradient convergence during training.
 
-### 2. Predictive Modeling & Algorithms
-Implemented, optimized, and cross-evaluated multiple machine learning models to capture complex, non-linear fluid dynamics relationships:
-* **Linear Baselines:** Used for benchmarking performance thresholds.
-* **Tree-Based Ensembles:** Utilized Random Forests and Gradient Boosting architectures to accurately map continuous surface changes to aerodynamic coefficients.
-* **Neural Networks (Optional/If applicable):** Deployed Multilayer Perceptrons (MLPs) for high-dimensional feature interaction mapping.
+### 2. Machine Learning Pipeline Architecture
+The system evaluates three distinct tree-based ensemble frameworks using **K-Fold Cross-Validation** to model complex, non-linear fluid dynamics:
+* **Random Forest Regressor:** Implemented with explicit multi-core constraints (`n_jobs` restrictions) to securely process large dimensional arrays without encountering local memory overheads.
+* **Gradient Boosting Machine (GBM):** Built sequentially to minimize loss residual patterns, comparing a default configuration with tuned learning rate bounds.
+* **LightGBM Regressor:** Deployed to maximize execution velocity across the heavy feature matrix. The optimized LightGBM model yielded a **7.66% improvement in Root Mean Squared Error (RMSE)** and a **7.87% reduction in Mean Absolute Error (MAE)** over default structural benchmarks for $C_D$ tracking.
 
-### 3. Validation Strategy
-* Utilized k-fold cross-validation to guarantee model stability.
-* Evaluated predictions using Mean Absolute Error (MAE), Root Mean Squared Error (RMSE), and R-squared ($R^2$) variance scoring.
-
-## Dataset Note
-* **Data Privacy:** In accordance with university and institutional confidentiality agreements, the raw aircraft engineering datasets used for model training are restricted and omitted from this public repository. 
-* **Execution:** Code scripts are configured to accept mock geometric and environmental arrays to demonstrate architectural viability.
+## Dataset & Model Artifact Note
+* **Portfolio Standards:** To keep the GitHub repository clean and lightweight, the raw data file (`AirfoilDatset.csv`) and the serialized inference binaries (`cl_model.pkl`, `cd_model.pkl`, `scaler.pkl`, `airfoil_label_encoder.pkl`, `feature_columns.pkl`) are untracked locally via the `.gitignore` setup.
 
 ## How to Run
-1. **Environment Setup:**
-   ```bash
-   pip install numpy pandas scikit-learn matplotlib seaborn
+
+### 1. Installation & Environment Setup
+Clone the repository and install the production dependencies:
+```bash
+pip install numpy pandas scikit-learn lightgbm matplotlib seaborn streamlit joblib
