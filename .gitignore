@@ -1,0 +1,31 @@
+ # ==========================================
+# Data Science & Dataset Artifacts
+# ==========================================
+# Ignore the raw massive dataset
+AirfoilDatset.csv
+
+# Ignore any generated or cleaned datasets
+AirfoilDatset_cleaned_1.csv
+*.csv
+*.xlsx
+*.mat
+
+# ==========================================
+# Machine Learning Model Binaries (Pickle files)
+# ==========================================
+# These are too large for standard GitHub web uploads
+*.pkl
+*.joblib
+cl_model.pkl
+cd_model.pkl
+scaler.pkl
+airfoil_label_encoder.pkl
+feature_columns.pkl
+
+# ==========================================
+# Python & Jupyter Notebook Clutter
+# ==========================================
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
